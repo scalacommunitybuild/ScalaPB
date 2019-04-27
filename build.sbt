@@ -7,7 +7,7 @@ val Scala211 = "2.11.12"
 
 val Scala212 = "2.12.8"
 
-val Scala213 = "2.13.0-M5"
+val Scala213 = "2.13.0-RC1"
 
 val protobufVersion = "3.7.0"
 
@@ -20,7 +20,11 @@ val grpcVersion = "1.19.0"
 
 val MimaPreviousVersion = "0.9.0-RC1"
 
-scalaVersion in ThisBuild := Scala213
+val ProtocJar = "com.github.os72" % "protoc-jar" % "3.7.0.1"
+
+val ScalaTest = "org.scalatest" %% "scalatest" % "3.0.8-RC2"
+
+scalaVersion in ThisBuild := Scala212
 
 crossScalaVersions in ThisBuild := Seq(Scala211, Scala212, Scala213)
 
@@ -95,7 +99,7 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     name := "scalapb-runtime",
     libraryDependencies ++= Seq(
       "com.lihaoyi" %%% "fastparse" % "1.0.0",
-      "com.lihaoyi" %%% "utest" % "0.6.6" % "test",
+      "com.lihaoyi" %%% "utest" % "0.6.7" % "test",
       "commons-codec" % "commons-codec" % "1.12" % "test",
       "com.google.protobuf" % "protobuf-java-util" % protobufVersion % "test",
     ),
@@ -120,7 +124,7 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .dependsOn(lenses)
   .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies ++= Seq(
-      "com.thesamet.scalapb" %%% "protobuf-runtime-scala" % "0.7.2"
+      "com.thesamet.scalapb" %%% "protobuf-runtime-scala" % "0.8.0"
     ),
     (unmanagedSourceDirectories in Compile) += baseDirectory.value / ".." / "non-jvm" / "src" / "main" / "scala"
   )
@@ -129,7 +133,13 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     libraryDependencies ++= Seq(
       "com.google.protobuf" % "protobuf-java" % protobufVersion,
       "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test",
-      "org.scalatest" %%% "scalatest" % "3.0.7" % "test"
+      ScalaTest % "test",
+    ),
+    // Can be removed after JDK 11.0.3 is available on Travis
+    Test / javaOptions ++= (
+        if (scalaVersion.value.startsWith("2.13."))
+              Seq("-XX:LoopStripMiningIter=0")
+              else Nil
     )
   )
   .jsSettings(
@@ -157,8 +167,8 @@ lazy val grpcRuntime = project.in(file("scalapb-runtime-grpc"))
     libraryDependencies ++= Seq(
       "io.grpc" % "grpc-stub" % grpcVersion,
       "io.grpc" % "grpc-protobuf" % grpcVersion,
-      "org.scalatest" %% "scalatest" % "3.0.7" % "test",
-      "org.mockito" % "mockito-core" % "2.23.4" % "test"
+      "org.mockito" % "mockito-core" % "2.23.4" % "test",
+      ScalaTest % "test",
     ),
     mimaPreviousArtifacts := Set("com.thesamet.scalapb" %% "scalapb-runtime-grpc" % MimaPreviousVersion)
   )
@@ -189,9 +199,9 @@ lazy val compilerPlugin = project.in(file("compiler-plugin"))
       Seq(dest)
     }.taskValue,
     libraryDependencies ++= Seq(
-      "com.thesamet.scalapb" %% "protoc-bridge" % "0.7.4",
-      "org.scalatest" %% "scalatest" % "3.0.7" % "test",
-      "com.github.os72" % "protoc-jar" % "3.7.0.1" % "test",
+      "com.thesamet.scalapb" %% "protoc-bridge" % "0.7.5",
+      ScalaTest % "test",
+      ProtocJar % "test",
     ),
     mimaPreviousArtifacts := Set("com.thesamet.scalapb" %% "compilerplugin" % MimaPreviousVersion),
     mimaBinaryIssueFilters ++= {
@@ -251,9 +261,8 @@ lazy val proptest = project.in(file("proptest"))
         "io.grpc" % "grpc-netty" % grpcVersion % "test",
         "io.grpc" % "grpc-protobuf" % grpcVersion % "test",
         "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test",
-        "org.scalatest" %% "scalatest" % "3.0.7" % "test"
+        ScalaTest % "test",
       ),
-      scalacOptions in Compile ++= Seq("-Xmax-classfile-name", "128"),
       libraryDependencies += { "org.scala-lang" % "scala-compiler" % scalaVersion.value },
     )
 
@@ -302,7 +311,7 @@ lazy val lenses = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/).in(f
     },
     testFrameworks += new TestFramework("utest.runner.Framework"),
     libraryDependencies ++= Seq(
-        "com.lihaoyi" %%% "utest" % "0.6.6" % "test"
+        "com.lihaoyi" %%% "utest" % "0.6.7" % "test"
     ),
     mimaPreviousArtifacts := Set("com.thesamet.scalapb" %% "lenses" % MimaPreviousVersion),
     mimaBinaryIssueFilters ++= {
