@@ -297,7 +297,7 @@ createVersionFile := {
 }
 
 
-lazy val lenses = crossProject(JSPlatform, JVMPlatform/*, NativePlatform*/).in(file("lenses"))
+lazy val lenses = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("lenses"))
   .settings(
     name := "lenses",
     unmanagedSourceDirectories in Compile ++= {
