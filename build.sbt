@@ -108,6 +108,8 @@ lazy val runtime = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v < 13 =>
           Seq(base / "scala-pre-2.13")
+        case Some((2, v)) if v == 13 =>
+          Seq(base / "scala-2.13.0-RC1")
         case _ =>
           Nil
       }
@@ -305,6 +307,8 @@ lazy val lenses = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v < 13 =>
           Seq(base / "scala-pre-2.13")
+        case Some((2, v)) if v == 13 =>
+          Seq(base / "scala-2.13.0-RC1")
         case _ =>
           Nil
       }
